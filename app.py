@@ -1,8 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_bootstrap_components as dbc
-
+from dash.dependencies import Input, Output
 import altair as alt
 import vega_datasets
 
@@ -12,7 +11,7 @@ server = app.server
 app.title = 'Dash app with pure Altair HTML'
 
 ## Magic happens here
-def make_plot(x_axis = 'Displacement', y_axis = 'Horsepower'):
+def make_plot():
 
     # Create a plot of the Displacement and the Horsepower of the cars dataset
     # Add theme here
@@ -77,10 +76,10 @@ def make_plot(x_axis = 'Displacement', y_axis = 'Horsepower'):
     alt.themes.enable('mds_special')
     #alt.themes.enable('none') # to return to default
     chart = alt.Chart(vega_datasets.data.cars.url).mark_circle(size=90).encode(
-                alt.X(x_axis, type = 'quantitative', title = 'Displacement (mm)'),
-                alt.Y(y_axis, type = 'quantitative', title = 'Horsepower (h.p.)'),
+                alt.X('Displacement:Q', title = 'Displacement (mm)'),
+                alt.Y('Horsepower:Q', title = 'Horsepower (h.p.)'),
                 tooltip = ['Horsepower:Q', 'Displacement:Q']
-            ).properties(title= x_axis + 'vs' + y_axis,
+            ).properties(title='Horsepower vs. Displacement',
                         width=500, height=350).interactive()
 
     return chart
@@ -116,50 +115,22 @@ app.layout = html.Div([
     ```
     '''),
     html.H3('This is a Dropdown'),
+    dcc.Dropdown(
+        options=[
+            {'label': 'New York City', 'value': 'NYC'},
+            {'label': 'Montréal', 'value': 'MTL'},
+            {'label': 'San Francisco', 'value': 'SF'}
+        ],
+    value='MTL', style=dict(width='55%')
+        ),
     html.H3('This is a slider bar'),
     dcc.Slider(
         min=0,
         max=9,
         marks={i: 'Label {}'.format(i) for i in range(10)},
         value=5
-        ),
-    dcc.Dropdown(
-            id='dd-chart',
-            options=[
-                {'label': 'Miles_per_Gallon', 'value': 'Miles_per_Gallon'},
-                {'label': 'Cylinders', 'value': 'Cylinders'},
-                {'label': 'Displacement', 'value': 'Displacement'},
-                # Missing option here
-            ],
-            value='Displacement',
-            style=dict(width='45%',
-                    verticalAlign="middle")
-                    ),
-     dcc.Dropdown(
-            id='dd-chart-y',
-            options=[
-                {'label': 'Miles_per_Gallon', 'value': 'Miles_per_Gallon'},
-                {'label': 'Cylinders', 'value': 'Cylinders'},
-                {'label': 'Displacement', 'value': 'Displacement'},
-                {'label': 'Horsepower', 'value': 'Horsepower'}
-                # Missing option here
-            ],
-            value='Horsepower',
-            style=dict(width='45%',
-                    verticalAlign="middle")
-                    ),
+        )  
 ])
-
-@app.callback(
-    dash.dependencies.Output('plot', 'srcDoc'),
-    [dash.dependencies.Input('dd-chart', 'value'),
-    dash.dependencies.Input('dd-chart-y', 'value')])
-def update_plot(xaxis_column_name, yaxis_column_name):
-    '''
-    Takes in an xaxis_column_name and calls make_plot to update our Altair figure
-    '''
-    updated_plot = make_plot(xaxis_column_name, yaxis_column_name).to_html()
-    return updated_plot
 
 if __name__ == '__main__':
     app.run_server(debug=True)
